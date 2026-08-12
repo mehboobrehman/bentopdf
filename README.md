@@ -90,8 +90,8 @@ You can run BentoPDF locally for development or personal use.
 
 
 ```bash
-docker pull bentopdf/bentopdf:latest
-docker run -p 3000:80 bentopdf/bentopdf:latest
+docker pull bentopdfteam/bentopdf:latest
+docker run -p 3000:80 bentopdfteam/bentopdf:latest
 ```
 Open your browser at: http://localhost:3000.
 This is the fastest way to try BentoPDF without setting up a development environment.
