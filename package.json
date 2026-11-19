@@ -4,9 +4,11 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "type": "module",
+  "main": "desktop/main.cjs",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:windows": "npm run build && electron-builder --win portable",
     "preview": "vite preview",
     "obfuscate": "node scripts/build.mjs",
     "test": "vitest",
@@ -25,12 +27,32 @@
     "@types/utif": "^3.0.6",
     "@vitest/coverage-v8": "^3.2.4",
     "@vitest/ui": "^3.2.4",
+    "electron": "^45.4.1",
+    "electron-builder": "^26.18.0",
     "jsdom": "^27.0.0",
     "ts-migrate": "^0.1.35",
     "typescript": "~5.9.3",
     "vite": "^7.1.7",
     "vite-plugin-node-polyfills": "^0.24.0",
     "vitest": "^3.2.4"
+  },
+  "build": {
+    "appId": "org.bentopdf.desktop",
+    "productName": "BentoPDF",
+    "asar": true,
+    "forceCodeSigning": false,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/main.cjs",
+      "dist/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "artifactName": "BentoPDF-${version}-portable.${ext}"
+    }
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.14",

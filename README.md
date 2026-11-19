@@ -115,6 +115,32 @@ This is the fastest way to try BentoPDF without setting up a development environ
     ```
     The application will be available at `http://localhost:5173`.
 
+### 🪟 Portable Windows app
+
+BentoPDF can be packaged as a standalone Windows executable. The portable build does not install system-wide or require Administrator rights; run the executable from a user-writable folder. Smart App Control requires a valid code-signing certificate issued by a trusted provider.
+
+To build an unsigned portable app locally:
+
+```powershell
+npm install
+npm run build:windows
+```
+
+The executable is written to `release/BentoPDF-0.0.0-portable.exe`. No Node.js installation is needed on the computer that runs the app. Unsigned builds may be blocked by Smart App Control.
+
+To sign a local build with a trusted PFX signing certificate, set the certificate path and password in PowerShell before building:
+
+```powershell
+$env:CSC_LINK = "C:\secure\publisher-certificate.pfx"
+$env:CSC_KEY_PASSWORD = "<PFX password>"
+npm install
+npm run build:windows
+```
+
+Tagged GitHub releases are built and signed with Microsoft Artifact Signing through GitHub Actions. Configure an Artifact Signing account with a Public Trust certificate profile, an Entra application with a federated credential for `repo:mehboobrehman/bentopdf:environment:windows-release`, and assign it the **Artifact Signing Certificate Profile Signer** role. Create the `windows-release` GitHub environment, restrict deployments to protected release tags, and require a reviewer before signing. Set these environment secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, and `AZURE_SUBSCRIPTION_ID`. Set these environment variables to match your Artifact Signing account: `ARTIFACT_SIGNING_ENDPOINT` (for example `https://eus.codesigning.azure.net/`), `ARTIFACT_SIGNING_ACCOUNT`, and `ARTIFACT_SIGNING_PROFILE`. Push a SemVer tag such as `v1.2.3` to publish the signed portable executable.
+
+No Node.js installation is needed on the computer that runs the app. A self-signed certificate is not trusted by Smart App Control. See Microsoft's [Smart App Control code-signing guidance](https://learn.microsoft.com/en-us/windows/apps/develop/smart-app-control/code-signing-for-smart-app-control) and [Artifact Signing setup guide](https://learn.microsoft.com/en-us/azure/artifact-signing/quickstart).
+
 ### 🚀 Running with Docker Compose Locally
 
 1.  **Clone the Repository**:

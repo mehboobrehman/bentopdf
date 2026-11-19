@@ -1,0 +1,94 @@
+name: Windows portable release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  build-sign-release:
+    runs-on: windows-2025
+    environment: windows-release
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set app version from tag
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$') {
+            throw "Release tag must contain a SemVer version, such as v1.2.3."
+          }
+          npm pkg set "version=$version"
+          if ($LASTEXITCODE -ne 0) {
+            throw "Unable to set the app version from the release tag."
+          }
+
+      - name: Build app
+        run: npm run build
+
+      - name: Package portable executable
+        run: npx electron-builder --win portable
+
+      - name: Sign in to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Sign executable with Artifact Signing
+        uses: azure/artifact-signing-action@v2.0.0
+        with:
+          endpoint: ${{ vars.ARTIFACT_SIGNING_ENDPOINT }}
+          signing-account-name: ${{ vars.ARTIFACT_SIGNING_ACCOUNT }}
+          certificate-profile-name: ${{ vars.ARTIFACT_SIGNING_PROFILE }}
+          files-folder: ${{ github.workspace }}\release
+          files-folder-filter: exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+          exclude-environment-credential: true
+          exclude-workload-identity-credential: true
+          exclude-managed-identity-credential: true
+          exclude-shared-token-cache-credential: true
+          exclude-visual-studio-credential: true
+          exclude-visual-studio-code-credential: true
+          exclude-azure-cli-credential: false
+          exclude-azure-powershell-credential: true
+          exclude-azure-developer-cli-credential: true
+          exclude-interactive-browser-credential: true
+
+      - name: Verify executable signature
+        shell: pwsh
+        run: |
+          $executables = Get-ChildItem -Path release -Filter *.exe
+          if ($executables.Count -ne 1) {
+            throw "Expected exactly one portable executable, found $($executables.Count)."
+          }
+          $signature = Get-AuthenticodeSignature -FilePath $executables[0].FullName
+          if ($signature.Status -ne 'Valid') {
+            throw "Portable executable signature is not valid: $($signature.StatusMessage)"
+          }
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.exe
+          generate_release_notes: true
