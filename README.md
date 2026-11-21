@@ -119,6 +119,14 @@ This is the fastest way to try BentoPDF without setting up a development environ
 
 BentoPDF can be packaged as a standalone Windows executable. The portable build does not install system-wide or require Administrator rights; run the executable from a user-writable folder. Smart App Control requires a valid code-signing certificate issued by a trusted provider.
 
+### App icon
+
+The app uses the **PDF Rotate Sync** icon — `PDF Rotate Sync Icon.ico` (a Windows icon; the design source is `PDF Rotate Sync Icon.png` at 256×256).
+
+-   Generate the icon files from the design: `node scripts/generate-app-icon.mjs`
+-   Apply the icon to a built executable: `node scripts/patch-exe-icon.mjs` (defaults to `release/BentoPDF-0.0.0-portable.exe`)
+-   Release builds set `win.icon` in `package.json`, so the artifact published to the GitHub release carries the same icon.
+
 To build an unsigned portable app locally:
 
 ```powershell
