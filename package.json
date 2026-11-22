@@ -51,7 +51,8 @@
     ],
     "win": {
       "target": "portable",
-      "artifactName": "BentoPDF-${version}-portable.${ext}"
+      "artifactName": "BentoPDF-${version}-portable.${ext}",
+      "icon": "PDF Rotate Sync Icon.ico"
     }
   },
   "dependencies": {
